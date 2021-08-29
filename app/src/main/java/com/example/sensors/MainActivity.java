@@ -10,12 +10,15 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 public class MainActivity extends AppCompatActivity {
+    private String[] requiredPermissions = {
+            Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+
     // Register the permissions callback, which handles the user's response to the
     // system permissions dialog. Save the return value, an instance of
     // ActivityResultLauncher, as an instance variable.
-    private ActivityResultLauncher<String> requestPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
+    private ActivityResultLauncher<String[]> requestMultiplePermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), isGranted -> {
+                if (isGranted.containsValue(true)) {
                     // Permission is granted. Continue the action or workflow in your
                     // app.
                 } else {
@@ -27,14 +30,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-
+    private void checkMultiplePermissions() {
         if (ContextCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                this, Manifest.permission.ACCESS_FINE_LOCATION) +
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED) {
             // You can use the API that requires the permission.
             //} else if (shouldShowRequestPermissionRationale(...)) {
@@ -46,9 +46,20 @@ public class MainActivity extends AppCompatActivity {
         } else {
             // You can directly ask for the permission.
             // The registered ActivityResultCallback gets the result of this request.
-            requestPermissionLauncher.launch(
-                    Manifest.permission.ACCESS_FINE_LOCATION);
+            requestMultiplePermissionLauncher.launch(requiredPermissions);
         }
+
+    }
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        checkMultiplePermissions();
+
+
+
     }
 
 
