@@ -7,7 +7,12 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.view.View;
@@ -19,13 +24,14 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-public class MainActivity extends AppCompatActivity {
+public class    MainActivity extends AppCompatActivity {
     // UI Elements
     private Button updateGPSbutton;
-    private TextView gpsTextView;
+    private TextView latitudeTextView;
+    private TextView longitudeTextView;
+
 
     // Get permissions to use location
-
     private String[] requiredPermissions = {
             Manifest.permission.ACCESS_FINE_LOCATION};//, Manifest.permission.ACCESS_COARSE_LOCATION};
 
@@ -69,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Things to actually get location
-
     private FusedLocationProviderClient fusedLocationProviderClient;
 
     private void getLocation() {
@@ -90,12 +95,22 @@ public class MainActivity extends AppCompatActivity {
             public void onSuccess(Location location) {
                 Toast.makeText(MainActivity.this, "Successfully gotten location",
                         Toast.LENGTH_SHORT).show();
-                gpsTextView.setText("Latitude :" + location.getLatitude() + "Longitude :" + location.getLongitude());
+                latitudeTextView.setText("" + location.getLatitude());
+                longitudeTextView.setText("" + location.getLongitude());
 
             }
         });
 
     }
+
+    // Things to handle the rotation vector
+    private SensorManager sensorManager;
+    private Sensor rotationSensor;
+    private Sensor accelSensor;
+    private Sensor magneticFieldSensor;
+    private final float[] mRotationMatrix = new float[16];
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,12 +118,44 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         // Get UI elements
         updateGPSbutton = findViewById(R.id.updateGPSbutton);
-        gpsTextView = findViewById(R.id.gpsTextView);
+        latitudeTextView = findViewById(R.id.latitudeTextView);
+        longitudeTextView = findViewById(R.id.longitudeTextView);
 
         // Check and request for permissions if necessary
         checkMultiplePermissions();
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
+        // Load sensors
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+        accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
+        sensorManager.registerListener(new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent sensorEvent) {
+                // we received a sensor event. it is a good practice to check
+                // that we received the proper event
+                if (sensorEvent.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
+                    // convert the rotation-vector to a 4x4 matrix. the matrix
+                    // is interpreted by Open GL as the inverse of the
+                    // rotation-vector, which is what we want.
+                    SensorManager.getRotationMatrixFromVector(
+                            mRotationMatrix , sensorEvent.values);
+                    Toast.makeText(MainActivity.this, "Rotation vector changed!", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int i) {
+
+            }
+        }, rotationSensor, 1000000);
+
+        SensorEventListener gyroEventListener = new GyroscopeEventListener(sensorManager);
+        sensorManager.registerListener(gyroEventListener, accelSensor, 1000000);
+        sensorManager.registerListener(gyroEventListener, magneticFieldSensor, 1000000);
 
         updateGPSbutton.setOnClickListener(new View.OnClickListener() {
             @Override
