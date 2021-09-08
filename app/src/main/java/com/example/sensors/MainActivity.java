@@ -121,6 +121,10 @@ public class    MainActivity extends AppCompatActivity {
         latitudeTextView = findViewById(R.id.latitudeTextView);
         longitudeTextView = findViewById(R.id.longitudeTextView);
 
+        TextView azimuthTextView = findViewById(R.id.azimuthTextView);
+        TextView pitchTextView = findViewById(R.id.pitchTextView);
+        TextView rollTextView = findViewById(R.id.rollTextView);
+
         // Check and request for permissions if necessary
         checkMultiplePermissions();
 
@@ -132,28 +136,8 @@ public class    MainActivity extends AppCompatActivity {
         accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
-        sensorManager.registerListener(new SensorEventListener() {
-            @Override
-            public void onSensorChanged(SensorEvent sensorEvent) {
-                // we received a sensor event. it is a good practice to check
-                // that we received the proper event
-                if (sensorEvent.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
-                    // convert the rotation-vector to a 4x4 matrix. the matrix
-                    // is interpreted by Open GL as the inverse of the
-                    // rotation-vector, which is what we want.
-                    SensorManager.getRotationMatrixFromVector(
-                            mRotationMatrix , sensorEvent.values);
-                    Toast.makeText(MainActivity.this, "Rotation vector changed!", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onAccuracyChanged(Sensor sensor, int i) {
-
-            }
-        }, rotationSensor, 1000000);
-
-        SensorEventListener gyroEventListener = new GyroscopeEventListener(sensorManager);
+        SensorEventListener gyroEventListener = new GyroscopeEventListener(sensorManager,
+                azimuthTextView, pitchTextView, rollTextView);
         sensorManager.registerListener(gyroEventListener, accelSensor, 1000000);
         sensorManager.registerListener(gyroEventListener, magneticFieldSensor, 1000000);
 
