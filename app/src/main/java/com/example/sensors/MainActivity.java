@@ -33,6 +33,9 @@ public class    MainActivity extends AppCompatActivity {
     private TextView endLatitudeTextView;
     private TextView endLongitudeTextView;
 
+    private Button distanceButton;
+    private TextView distanceTextView;
+
     private TextView azimuthTextView;
     private TextView pitchTextView ;
     private TextView rollTextView;
@@ -128,6 +131,9 @@ public class    MainActivity extends AppCompatActivity {
         endLatitudeTextView = findViewById(R.id.endLatitudeTextView);
         endLongitudeTextView = findViewById(R.id.endLongitudeTextView);
 
+        distanceButton = findViewById(R.id.distanceButton);
+        distanceTextView = findViewById(R.id.distanceTextView);
+
         azimuthTextView = findViewById(R.id.azimuthTextView);
         pitchTextView = findViewById(R.id.pitchTextView);
         rollTextView = findViewById(R.id.rollTextView);
@@ -161,6 +167,35 @@ public class    MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 getLocation(endLatitudeTextView, endLongitudeTextView);
+            }
+        });
+
+        distanceButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Calculate haversine distance between two points
+                double startLatitude = Math.toRadians(
+                        Double.parseDouble(startLatitudeTextView.getText().toString()));
+                double startLongitude = Math.toRadians(
+                        Double.parseDouble(startLongitudeTextView.getText().toString()));
+                double endLatitude = Math.toRadians(
+                        Double.parseDouble(endLatitudeTextView.getText().toString()));
+                double endLongitude = Math.toRadians(
+                        Double.parseDouble(endLongitudeTextView.getText().toString()));
+
+                double radius = 6371;
+
+                double first_part = Math.pow(Math.sin((endLatitude - startLatitude)/2), 2);
+                double second_part = Math.cos(startLatitude) * Math.cos(endLatitude) *
+                        Math.pow(Math.sin((endLongitude - startLongitude) /2), 2);
+                double combined = Math.asin(Math.sqrt(first_part + second_part));
+
+                double distance = 2 * radius * combined;
+
+                distanceTextView.setText(distance + "");
+
+
+
             }
         });
 
