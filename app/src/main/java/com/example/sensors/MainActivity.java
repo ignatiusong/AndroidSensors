@@ -10,7 +10,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
-import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
@@ -26,9 +25,25 @@ import com.google.android.gms.tasks.OnSuccessListener;
 
 public class    MainActivity extends AppCompatActivity {
     // UI Elements
-    private Button updateGPSbutton;
-    private TextView latitudeTextView;
-    private TextView longitudeTextView;
+    private Button updateStartGPSbutton;
+    private TextView startLatitudeTextView;
+    private TextView startLongitudeTextView;
+
+    private Button updateEndGPSbutton;
+    private TextView endLatitudeTextView;
+    private TextView endLongitudeTextView;
+
+    private TextView azimuthTextView;
+    private TextView pitchTextView ;
+    private TextView rollTextView;
+
+
+    // Things to handle the rotation vector
+    private SensorManager sensorManager;
+    private Sensor rotationSensor;
+    private Sensor accelSensor;
+    private Sensor magneticFieldSensor;
+    private final float[] mRotationMatrix = new float[16];
 
 
     // Get permissions to use location
@@ -77,7 +92,7 @@ public class    MainActivity extends AppCompatActivity {
     // Things to actually get location
     private FusedLocationProviderClient fusedLocationProviderClient;
 
-    private void getLocation() {
+    private void getLocation(TextView latitude, TextView longitude) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -95,20 +110,61 @@ public class    MainActivity extends AppCompatActivity {
             public void onSuccess(Location location) {
                 Toast.makeText(MainActivity.this, "Successfully gotten location",
                         Toast.LENGTH_SHORT).show();
-                latitudeTextView.setText("" + location.getLatitude());
-                longitudeTextView.setText("" + location.getLongitude());
+                latitude.setText("" + location.getLatitude());
+                longitude.setText("" + location.getLongitude());
 
             }
         });
 
     }
 
-    // Things to handle the rotation vector
-    private SensorManager sensorManager;
-    private Sensor rotationSensor;
-    private Sensor accelSensor;
-    private Sensor magneticFieldSensor;
-    private final float[] mRotationMatrix = new float[16];
+    private void loadUIElements() {
+        // Get UI elements
+        updateStartGPSbutton = findViewById(R.id.getStartGPSbutton);
+        startLatitudeTextView = findViewById(R.id.startLatitudeTextView);
+        startLongitudeTextView = findViewById(R.id.startLongitudeTextView);
+
+        updateEndGPSbutton = findViewById(R.id.getEndGPSbutton);
+        endLatitudeTextView = findViewById(R.id.endLatitudeTextView);
+        endLongitudeTextView = findViewById(R.id.endLongitudeTextView);
+
+        azimuthTextView = findViewById(R.id.azimuthTextView);
+        pitchTextView = findViewById(R.id.pitchTextView);
+        rollTextView = findViewById(R.id.rollTextView);
+
+    }
+
+    private void loadSensors() {
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        // Load sensors
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+        accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
+    }
+
+    private void registerListeners() {
+        SensorEventListener gyroEventListener = new GyroscopeEventListener(sensorManager,
+                azimuthTextView, pitchTextView, rollTextView);
+        sensorManager.registerListener(gyroEventListener, accelSensor, 1000000);
+        sensorManager.registerListener(gyroEventListener, magneticFieldSensor, 1000000);
+
+        updateStartGPSbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getLocation(startLatitudeTextView, startLongitudeTextView);
+            }
+        });
+
+        updateEndGPSbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getLocation(endLatitudeTextView, endLongitudeTextView);
+            }
+        });
+
+    }
 
 
 
@@ -116,37 +172,16 @@ public class    MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // Get UI elements
-        updateGPSbutton = findViewById(R.id.updateGPSbutton);
-        latitudeTextView = findViewById(R.id.latitudeTextView);
-        longitudeTextView = findViewById(R.id.longitudeTextView);
-
-        TextView azimuthTextView = findViewById(R.id.azimuthTextView);
-        TextView pitchTextView = findViewById(R.id.pitchTextView);
-        TextView rollTextView = findViewById(R.id.rollTextView);
+        loadUIElements();
+        loadSensors();
+        registerListeners();
 
         // Check and request for permissions if necessary
         checkMultiplePermissions();
 
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-        // Load sensors
-        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-        accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
-        SensorEventListener gyroEventListener = new GyroscopeEventListener(sensorManager,
-                azimuthTextView, pitchTextView, rollTextView);
-        sensorManager.registerListener(gyroEventListener, accelSensor, 1000000);
-        sensorManager.registerListener(gyroEventListener, magneticFieldSensor, 1000000);
 
-        updateGPSbutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                getLocation();
-            }
-        });
 
 
 
