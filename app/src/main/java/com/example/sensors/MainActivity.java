@@ -26,17 +26,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 public class    MainActivity extends AppCompatActivity {
-    private TextView azimuthTextView;
-    private TextView pitchTextView ;
-    private TextView rollTextView;
 
-
-    // Things to handle the rotation vector
-    private SensorManager sensorManager;
-    private Sensor rotationSensor;
-    private Sensor accelSensor;
-    private Sensor magneticFieldSensor;
-    private final float[] mRotationMatrix = new float[16];
 
 
     // Get permissions to use location
@@ -82,30 +72,7 @@ public class    MainActivity extends AppCompatActivity {
 
     }
 
-    private void loadUIElements() {
-        // Get UI elements
-        azimuthTextView = findViewById(R.id.azimuthTextView);
-        pitchTextView = findViewById(R.id.pitchTextView);
-        rollTextView = findViewById(R.id.rollTextView);
 
-    }
-
-    private void loadSensors() {
-        // Load sensors
-        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-        accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-
-    }
-
-    private void registerListeners() {
-        SensorEventListener gyroEventListener = new GyroscopeEventListener(sensorManager,
-                azimuthTextView, pitchTextView, rollTextView);
-        sensorManager.registerListener(gyroEventListener, accelSensor, 1000000);
-        sensorManager.registerListener(gyroEventListener, magneticFieldSensor, 1000000);
-
-    }
 
 
 
@@ -113,19 +80,17 @@ public class    MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        loadUIElements();
-        loadSensors();
-        registerListeners();
 
         // Check and request for permissions if necessary
         checkMultiplePermissions();
 
         if(savedInstanceState == null) {
-            Bundle bundle = new Bundle();
-            bundle.putInt("some_int" , 0);
-
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.gpsFragment, new GpsFragment()).commit();
+
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.gyroFragment, new GyroscopeFragment()).commit();
         }
 
 
