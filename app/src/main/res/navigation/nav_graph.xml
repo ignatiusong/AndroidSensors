@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/gpsFragment">
+
+    <fragment
+        android:id="@+id/gpsFragment"
+        android:name="com.example.sensors.GpsFragment"
+        android:label="fragment_gps"
+        tools:layout="@layout/fragment_gps" />
+    <fragment
+        android:id="@+id/gyroscopeFragment"
+        android:name="com.example.sensors.GyroscopeFragment"
+        android:label="fragment_gyroscope"
+        tools:layout="@layout/fragment_gyroscope" />
+</navigation>

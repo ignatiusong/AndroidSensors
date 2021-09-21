@@ -1,34 +1,23 @@
 package com.example.sensors;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.widget.Toast;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.NavigationUI;
 
-import android.Manifest;
-import android.app.FragmentTransaction;
-import android.content.Context;
-import android.content.pm.PackageManager;
-import android.hardware.Sensor;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.location.Location;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
-
-public class    MainActivity extends AppCompatActivity {
-
-
-
+public class MainActivity extends AppCompatActivity {
     // Get permissions to use location
     private String[] requiredPermissions = {
             Manifest.permission.ACCESS_FINE_LOCATION};//, Manifest.permission.ACCESS_COARSE_LOCATION};
@@ -84,14 +73,13 @@ public class    MainActivity extends AppCompatActivity {
         // Check and request for permissions if necessary
         checkMultiplePermissions();
 
-        if(savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.gpsFragment, new GpsFragment()).commit();
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation_view);
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.nav_fragment);
+        NavController navController = navHostFragment.getNavController();
+        NavigationUI.setupWithNavController(bottomNavigationView, navController);
 
 
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.gyroFragment, new GyroscopeFragment()).commit();
-        }
 
 
 
