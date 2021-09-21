@@ -15,4 +15,9 @@
         android:name="com.example.sensors.GyroscopeFragment"
         android:label="fragment_gyroscope"
         tools:layout="@layout/fragment_gyroscope" />
+    <fragment
+        android:id="@+id/bluetoothFragment"
+        android:name="com.example.sensors.BluetoothFragment"
+        android:label="fragment_bluetooth"
+        tools:layout="@layout/fragment_bluetooth" />
 </navigation>

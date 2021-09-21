@@ -8,4 +8,9 @@
         android:id="@+id/gyroscopeFragment"
         android:title="Gyroscope"
         android:icon="@drawable/gyroscope" />
+
+    <item
+        android:id="@+id/bluetoothFragment"
+        android:title="Bluetooth"
+        android:icon="@drawable/bluetooth"/>
 </menu>
