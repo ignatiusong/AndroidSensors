@@ -5,8 +5,10 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 
 import android.Manifest;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -24,18 +26,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 public class    MainActivity extends AppCompatActivity {
-    // UI Elements
-    private Button updateStartGPSbutton;
-    private TextView startLatitudeTextView;
-    private TextView startLongitudeTextView;
-
-    private Button updateEndGPSbutton;
-    private TextView endLatitudeTextView;
-    private TextView endLongitudeTextView;
-
-    private Button distanceButton;
-    private TextView distanceTextView;
-
     private TextView azimuthTextView;
     private TextView pitchTextView ;
     private TextView rollTextView;
@@ -92,48 +82,8 @@ public class    MainActivity extends AppCompatActivity {
 
     }
 
-    // Things to actually get location
-    private FusedLocationProviderClient fusedLocationProviderClient;
-
-    private void getLocation(TextView latitude, TextView longitude) {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return ;
-        }
-
-
-        fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location location) {
-                Toast.makeText(MainActivity.this, "Successfully gotten location",
-                        Toast.LENGTH_SHORT).show();
-                latitude.setText("" + location.getLatitude());
-                longitude.setText("" + location.getLongitude());
-
-            }
-        });
-
-    }
-
     private void loadUIElements() {
         // Get UI elements
-        updateStartGPSbutton = findViewById(R.id.getStartGPSbutton);
-        startLatitudeTextView = findViewById(R.id.startLatitudeTextView);
-        startLongitudeTextView = findViewById(R.id.startLongitudeTextView);
-
-        updateEndGPSbutton = findViewById(R.id.getEndGPSbutton);
-        endLatitudeTextView = findViewById(R.id.endLatitudeTextView);
-        endLongitudeTextView = findViewById(R.id.endLongitudeTextView);
-
-        distanceButton = findViewById(R.id.distanceButton);
-        distanceTextView = findViewById(R.id.distanceTextView);
-
         azimuthTextView = findViewById(R.id.azimuthTextView);
         pitchTextView = findViewById(R.id.pitchTextView);
         rollTextView = findViewById(R.id.rollTextView);
@@ -141,7 +91,6 @@ public class    MainActivity extends AppCompatActivity {
     }
 
     private void loadSensors() {
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         // Load sensors
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
@@ -155,49 +104,6 @@ public class    MainActivity extends AppCompatActivity {
                 azimuthTextView, pitchTextView, rollTextView);
         sensorManager.registerListener(gyroEventListener, accelSensor, 1000000);
         sensorManager.registerListener(gyroEventListener, magneticFieldSensor, 1000000);
-
-        updateStartGPSbutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                getLocation(startLatitudeTextView, startLongitudeTextView);
-            }
-        });
-
-        updateEndGPSbutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                getLocation(endLatitudeTextView, endLongitudeTextView);
-            }
-        });
-
-        distanceButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Calculate haversine distance between two points
-                double startLatitude = Math.toRadians(
-                        Double.parseDouble(startLatitudeTextView.getText().toString()));
-                double startLongitude = Math.toRadians(
-                        Double.parseDouble(startLongitudeTextView.getText().toString()));
-                double endLatitude = Math.toRadians(
-                        Double.parseDouble(endLatitudeTextView.getText().toString()));
-                double endLongitude = Math.toRadians(
-                        Double.parseDouble(endLongitudeTextView.getText().toString()));
-
-                double radius = 6371;
-
-                double first_part = Math.pow(Math.sin((endLatitude - startLatitude)/2), 2);
-                double second_part = Math.cos(startLatitude) * Math.cos(endLatitude) *
-                        Math.pow(Math.sin((endLongitude - startLongitude) /2), 2);
-                double combined = Math.asin(Math.sqrt(first_part + second_part));
-
-                double distance = 2 * radius * combined;
-
-                distanceTextView.setText(distance + "");
-
-
-
-            }
-        });
 
     }
 
@@ -213,6 +119,14 @@ public class    MainActivity extends AppCompatActivity {
 
         // Check and request for permissions if necessary
         checkMultiplePermissions();
+
+        if(savedInstanceState == null) {
+            Bundle bundle = new Bundle();
+            bundle.putInt("some_int" , 0);
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.gpsFragment, new GpsFragment()).commit();
+        }
 
 
 
