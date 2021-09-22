@@ -114,14 +114,13 @@ public class BluetoothFragment extends Fragment {
             Toast.makeText(getContext(), "No Nearby Devices", Toast.LENGTH_SHORT).show();
             return;
         }
-        List<String> list = nearbyDevices.stream()
-                .map(BluetoothDevice::getName)
+        List<BluetoothDevice> list = nearbyDevices.stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
         Toast.makeText(getContext(), "Showing Nearby Devices", Toast.LENGTH_SHORT).show();
 
-        final ArrayAdapter<String> adapter = new ArrayAdapter<>(
+        final ArrayAdapter<BluetoothDevice> adapter = new BluetoothArrayAdapter(
                 getContext(), android.R.layout.simple_list_item_1, list);
 
         lv.setAdapter(adapter);
@@ -137,6 +136,13 @@ public class BluetoothFragment extends Fragment {
         Button listNearbyDevicesButton = requireView().findViewById(R.id.listNearbyDevicesButton);
 
         lv = requireView().findViewById(R.id.listView);
+
+        lv.setOnItemClickListener((adapterView, view, position, l) -> {
+            BluetoothDevice device = (BluetoothDevice) lv.getItemAtPosition(position);
+            Toast.makeText(requireContext(), "Selected : " + device.toString(),
+                    Toast.LENGTH_SHORT).show();
+
+        });
 
         onBluetoothButton.setOnClickListener(view -> turnBluetoothOn());
 
