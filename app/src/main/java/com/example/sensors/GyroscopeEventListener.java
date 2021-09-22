@@ -61,9 +61,9 @@ public class GyroscopeEventListener implements SensorEventListener {
     }
 
     private void updateText() {
-        this.azimuthTextView.setText(orientationAngles[0] + "");
-        this.pitchTextView.setText(orientationAngles[1] + "");
-        this.rollTextView.setText(orientationAngles[2] + "");
+        this.azimuthTextView.setText(Math.toDegrees(orientationAngles[0]) + "");
+        this.pitchTextView.setText(Math.toDegrees(orientationAngles[1]) + "");
+        this.rollTextView.setText(Math.toDegrees(orientationAngles[2]) + "");
     }
 
     @Override
