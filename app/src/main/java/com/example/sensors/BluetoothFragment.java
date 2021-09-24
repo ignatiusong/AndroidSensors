@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.telephony.TelephonyManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,11 +23,13 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class BluetoothFragment extends Fragment {
@@ -91,7 +95,8 @@ public class BluetoothFragment extends Fragment {
                 new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
         discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
         startActivityForResult(discoverableIntent, requestCode);
-        BA.startDiscovery();
+        Toast.makeText(requireContext(), "Bluetooth device is now visible", Toast.LENGTH_SHORT).show();
+
     }
 
     private void listPairedDevices(){
@@ -110,6 +115,7 @@ public class BluetoothFragment extends Fragment {
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void listNearbyDevices(){
+        BA.startDiscovery();
         if(nearbyDevices.isEmpty()) {
             Toast.makeText(getContext(), "No Nearby Devices", Toast.LENGTH_SHORT).show();
             return;
@@ -121,11 +127,10 @@ public class BluetoothFragment extends Fragment {
         Toast.makeText(getContext(), "Showing Nearby Devices", Toast.LENGTH_SHORT).show();
 
         final ArrayAdapter<BluetoothDevice> adapter = new BluetoothArrayAdapter(
-                getContext(), android.R.layout.simple_list_item_1, list);
+                requireContext(), android.R.layout.simple_list_item_1, list);
 
         lv.setAdapter(adapter);
     }
-
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void loadUIElements() {
@@ -139,8 +144,8 @@ public class BluetoothFragment extends Fragment {
 
         lv.setOnItemClickListener((adapterView, view, position, l) -> {
             BluetoothDevice device = (BluetoothDevice) lv.getItemAtPosition(position);
-            Toast.makeText(requireContext(), "Selected : " + device.toString(),
-                    Toast.LENGTH_SHORT).show();
+            ConnectThread connectThread = new ConnectThread(BA, requireContext());
+            connectThread.start();
 
         });
 

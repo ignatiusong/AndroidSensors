@@ -23,10 +23,8 @@ public class GyroscopeFragment extends Fragment {
 
     // Things to handle the rotation vector
     private SensorManager sensorManager;
-    private Sensor rotationSensor;
     private Sensor accelSensor;
     private Sensor magneticFieldSensor;
-    private final float[] mRotationMatrix = new float[16];
 
     public GyroscopeFragment() {
         // Required empty public constructor
@@ -47,26 +45,32 @@ public class GyroscopeFragment extends Fragment {
 
     private void loadUIElements() {
         // Get UI elements
-        azimuthTextView = getView().findViewById(R.id.azimuthTextView);
-        pitchTextView = getView().findViewById(R.id.pitchTextView);
-        rollTextView = getView().findViewById(R.id.rollTextView);
+        azimuthTextView = requireView().findViewById(R.id.azimuthTextView);
+        pitchTextView = requireView().findViewById(R.id.pitchTextView);
+        rollTextView = requireView().findViewById(R.id.rollTextView);
 
     }
 
     private void loadSensors() {
         // Load sensors
-        sensorManager = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
-        rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+        sensorManager = (SensorManager) requireActivity().getSystemService(Context.SENSOR_SERVICE);
         accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
     }
 
     private void registerListeners() {
-        SensorEventListener gyroEventListener = new GyroscopeEventListener(sensorManager,
+        SensorEventListener gyroEventListener = new GyroscopeEventListener(
                 azimuthTextView, pitchTextView, rollTextView);
-        sensorManager.registerListener(gyroEventListener, accelSensor, 1000000);
-        sensorManager.registerListener(gyroEventListener, magneticFieldSensor, 1000000);
+        if (accelSensor != null) {
+            sensorManager.registerListener(gyroEventListener, accelSensor, SensorManager.SENSOR_DELAY_NORMAL,
+                    SensorManager.SENSOR_DELAY_UI);
+        }
+
+        if(magneticFieldSensor != null) {
+            sensorManager.registerListener(gyroEventListener, magneticFieldSensor,
+                    SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        }
 
     }
 
