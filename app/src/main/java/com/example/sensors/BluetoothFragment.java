@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,6 +40,8 @@ import java.util.stream.Collectors;
 public class BluetoothFragment extends Fragment {
     private BluetoothAdapter BA;
     private final Set<BluetoothDevice> nearbyDevices;
+    private ConnectThread connectThread;
+
     ListView lv;
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -136,6 +139,12 @@ public class BluetoothFragment extends Fragment {
         lv.setAdapter(adapter);
     }
 
+    public void sendMessage(String message) {
+        if (connectThread != null) {
+            connectThread.sendMessage(message);
+        }
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void loadUIElements() {
         Button onBluetoothButton = requireView().findViewById(R.id.onBluetoothbutton);
@@ -144,8 +153,10 @@ public class BluetoothFragment extends Fragment {
         Button listPairedDevicesButton = requireView().findViewById(R.id.listPairedDevicesButton);
         Button listNearbyDevicesButton = requireView().findViewById(R.id.listNearbyDevicesButton);
         Button startServerButton = requireView().findViewById(R.id.startServerButton);
+        Button sendMessageButton = requireView().findViewById(R.id.sendMessageButton);
 
         TextView receivedMsgTextView = requireView().findViewById(R.id.receivedMsgTextView);
+        EditText sendMsgEditText = requireView().findViewById(R.id.messageToSendEditText);
 
         lv = requireView().findViewById(R.id.listView);
 
@@ -183,7 +194,12 @@ public class BluetoothFragment extends Fragment {
 
         startServerButton.setOnClickListener(view -> {
             ConnectThread connectThread = new ConnectThread(BA, requireContext(), handler);
+            BluetoothFragment.this.connectThread = connectThread;
             connectThread.start();
+        });
+
+        sendMessageButton.setOnClickListener(view -> {
+            sendMessage(sendMsgEditText.getText().toString());
         });
 
 

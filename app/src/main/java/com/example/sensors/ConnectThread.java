@@ -12,6 +12,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 
@@ -19,6 +20,7 @@ public class ConnectThread extends Thread {
     private final BluetoothServerSocket mmServerSocket;
     private final BluetoothAdapter bluetoothAdapter;
     private final Context context;
+    private ConnectedThread connectedThread;
 
     private final String NAME = "SensorsApp";
     private final UUID MY_UUID = UUID.fromString("ce5b77c0-1cfc-11ec-8367-0800200c9a66");
@@ -54,6 +56,7 @@ public class ConnectThread extends Thread {
                 // A connection was accepted. Perform work associated with
                 // the connection in a separate thread.
                 ConnectedThread connectedThread = new ConnectedThread(socket);
+                ConnectThread.this.connectedThread = connectedThread;
                 connectedThread.start();
                 try {
                     mmServerSocket.close();
@@ -63,6 +66,13 @@ public class ConnectThread extends Thread {
                 break;
             }
         }
+    }
+
+    public void sendMessage(String message) {
+        if(connectedThread != null) {
+            connectedThread.write(message.getBytes(StandardCharsets.UTF_8));
+        }
+
     }
 
     // Closes the connect socket and causes the thread to finish.
