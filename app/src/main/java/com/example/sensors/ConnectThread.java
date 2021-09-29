@@ -3,7 +3,6 @@ package com.example.sensors;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -18,22 +17,17 @@ import java.util.UUID;
 
 public class ConnectThread extends Thread {
     private final BluetoothServerSocket mmServerSocket;
-    private final BluetoothAdapter bluetoothAdapter;
-    private final Context context;
     private ConnectedThread connectedThread;
 
-    private final String NAME = "SensorsApp";
-    private final UUID MY_UUID = UUID.fromString("ce5b77c0-1cfc-11ec-8367-0800200c9a66");
-
-    public ConnectThread(BluetoothAdapter bluetoothAdapter, Context context, Handler handler) {
-        this.bluetoothAdapter = bluetoothAdapter;
-        this.context = context;
+    public ConnectThread(BluetoothAdapter bluetoothAdapter, Handler handler) {
         this.handler = handler;
         // Use a temporary object that is later assigned to mmServerSocket
         // because mmServerSocket is final.
         BluetoothServerSocket tmp = null;
         try {
             // MY_UUID is the app's UUID string, also used by the client code.
+            String NAME = "SensorsApp";
+            UUID MY_UUID = UUID.fromString("ce5b77c0-1cfc-11ec-8367-0800200c9a66");
             tmp = bluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME, MY_UUID);
         } catch (IOException e) {
             Log.e("No go", "Socket's listen() method failed", e);
@@ -42,7 +36,7 @@ public class ConnectThread extends Thread {
     }
 
     public void run() {
-        BluetoothSocket socket = null;
+        BluetoothSocket socket;
         // Keep listening until exception occurs or a socket is returned.
         while (true) {
             try {
@@ -85,7 +79,7 @@ public class ConnectThread extends Thread {
     }
 
     private static final String TAG = "MY_APP_DEBUG_TAG";
-    private Handler handler; // handler that gets info from Bluetooth service
+    private final Handler handler; // handler that gets info from Bluetooth service
 
 
     private class ConnectedThread extends Thread {

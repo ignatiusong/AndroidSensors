@@ -11,8 +11,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.provider.Settings;
-import android.telephony.TelephonyManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,13 +26,11 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class BluetoothFragment extends Fragment {
@@ -182,7 +178,6 @@ public class BluetoothFragment extends Fragment {
             @Override
             public void handleMessage(@NonNull Message msg) {
                 if(msg.what == MessageConstants.MESSAGE_READ) {
-                    int numBytes = msg.arg1;
                     byte[] bytes = (byte[]) msg.obj;
 
                     receivedMsgTextView.setText(new String(bytes));
@@ -193,14 +188,12 @@ public class BluetoothFragment extends Fragment {
         };
 
         startServerButton.setOnClickListener(view -> {
-            ConnectThread connectThread = new ConnectThread(BA, requireContext(), handler);
+            ConnectThread connectThread = new ConnectThread(BA, handler);
             BluetoothFragment.this.connectThread = connectThread;
             connectThread.start();
         });
 
-        sendMessageButton.setOnClickListener(view -> {
-            sendMessage(sendMsgEditText.getText().toString());
-        });
+        sendMessageButton.setOnClickListener(view -> sendMessage(sendMsgEditText.getText().toString()));
 
 
     }

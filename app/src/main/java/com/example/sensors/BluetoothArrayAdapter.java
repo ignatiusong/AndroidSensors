@@ -11,13 +11,12 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class BluetoothArrayAdapter extends ArrayAdapter<BluetoothDevice> {
-    private Context mContext;
-    private List<BluetoothDevice> bluetoothDeviceList = new ArrayList<>();
-    private int layoutID;
+    private final Context mContext;
+    private final List<BluetoothDevice> bluetoothDeviceList;
+    private final int layoutID;
 
     public BluetoothArrayAdapter(@NonNull Context context, int resource, @NonNull List<BluetoothDevice> objects) {
         super(context, resource , objects);
@@ -37,7 +36,7 @@ public class BluetoothArrayAdapter extends ArrayAdapter<BluetoothDevice> {
 
         BluetoothDevice currentDevice = bluetoothDeviceList.get(position);
 
-        TextView textView = (TextView) listItem.findViewById(android.R.id.text1);
+        TextView textView = listItem.findViewById(android.R.id.text1);
         if (currentDevice.getName() != null) {
             textView.setText(currentDevice.getName());
         } else {
