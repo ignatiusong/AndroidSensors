@@ -8,6 +8,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.view.LayoutInflater;
@@ -16,6 +19,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -139,15 +143,19 @@ public class BluetoothFragment extends Fragment {
         Button setDiscoveryButton = requireView().findViewById(R.id.setDiscoverableButton);
         Button listPairedDevicesButton = requireView().findViewById(R.id.listPairedDevicesButton);
         Button listNearbyDevicesButton = requireView().findViewById(R.id.listNearbyDevicesButton);
+        Button startServerButton = requireView().findViewById(R.id.startServerButton);
+
+        TextView receivedMsgTextView = requireView().findViewById(R.id.receivedMsgTextView);
 
         lv = requireView().findViewById(R.id.listView);
 
+        /*
         lv.setOnItemClickListener((adapterView, view, position, l) -> {
             BluetoothDevice device = (BluetoothDevice) lv.getItemAtPosition(position);
             ConnectThread connectThread = new ConnectThread(BA, requireContext());
             connectThread.start();
 
-        });
+        });*/
 
         onBluetoothButton.setOnClickListener(view -> turnBluetoothOn());
 
@@ -158,6 +166,25 @@ public class BluetoothFragment extends Fragment {
         listPairedDevicesButton.setOnClickListener(view -> listPairedDevices());
 
         listNearbyDevicesButton.setOnClickListener(view -> listNearbyDevices());
+
+        Handler handler = new Handler(Looper.getMainLooper()) {
+            @Override
+            public void handleMessage(@NonNull Message msg) {
+                if(msg.what == MessageConstants.MESSAGE_READ) {
+                    int numBytes = msg.arg1;
+                    byte[] bytes = (byte[]) msg.obj;
+
+                    receivedMsgTextView.setText(new String(bytes));
+
+                }
+
+            }
+        };
+
+        startServerButton.setOnClickListener(view -> {
+            ConnectThread connectThread = new ConnectThread(BA, requireContext(), handler);
+            connectThread.start();
+        });
 
 
     }
