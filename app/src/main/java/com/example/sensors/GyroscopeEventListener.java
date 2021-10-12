@@ -7,22 +7,28 @@ import android.hardware.SensorManager;
 import android.widget.TextView;
 
 public class GyroscopeEventListener implements SensorEventListener {
-    private final float[] accelerometerReading = new float[3];
-    private final float[] magnetometerReading = new float[3];
+    public final float[] accelerometerReading = new float[3];
+    public final float[] magnetometerReading = new float[3];
 
     private final float[] rotationMatrix = new float[9];
-    private final float[] orientationAngles = new float[3];
+    public final float[] orientationAngles = new float[3];
 
-    private final TextView azimuthTextView;
-    private final TextView pitchTextView;
-    private final TextView rollTextView;
+    private TextView azimuthTextView = null;
+    private TextView pitchTextView = null;
+    private TextView rollTextView = null;
 
+    private boolean hasText = false;
+
+    public GyroscopeEventListener() {
+
+    }
 
     public GyroscopeEventListener(TextView azimuthTextView,
                                   TextView pitchTextView, TextView rollTextView) {
         this.azimuthTextView = azimuthTextView;
         this.pitchTextView = pitchTextView;
         this.rollTextView = rollTextView;
+        this.hasText = true;
     }
 
     @Override
@@ -32,11 +38,13 @@ public class GyroscopeEventListener implements SensorEventListener {
                     0, accelerometerReading.length);
 
             updateOrientationAngles();
+            updateText();
         }
         if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
             System.arraycopy(event.values, 0, magnetometerReading,
                     0, magnetometerReading.length);
             updateOrientationAngles();
+            updateText();
         }
     }
 
@@ -53,17 +61,22 @@ public class GyroscopeEventListener implements SensorEventListener {
 
         // "orientationAngles" now has up-to-date information.
 
-        updateText();
     }
 
     private void updateText() {
-        this.azimuthTextView.setText(Math.toDegrees(orientationAngles[0]) + "");
-        this.pitchTextView.setText(Math.toDegrees(orientationAngles[1]) + "");
-        this.rollTextView.setText(Math.toDegrees(orientationAngles[2]) + "");
+        if(hasText) {
+            this.azimuthTextView.setText(Math.toDegrees(orientationAngles[0]) + "");
+            this.pitchTextView.setText(Math.toDegrees(orientationAngles[1]) + "");
+            this.rollTextView.setText(Math.toDegrees(orientationAngles[2]) + "");
+        }
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
 
+    }
+
+    public double getAzimuth() {
+        return orientationAngles[0];
     }
 }

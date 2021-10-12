@@ -9,6 +9,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -112,10 +116,38 @@ public class BluetoothFragment extends Fragment {
         }
 
         fusedLocationProviderClient.getLastLocation().addOnSuccessListener((Activity) context, location -> {
-            Toast.makeText(context, "Sending message", Toast.LENGTH_SHORT).show();
             connectThread.sendMessage(location.getLatitude() + " " + location.getLongitude());
 
         });
+    }
+
+    private GyroscopeEventListener gyroEventListener;
+
+    private void loadGyroscopeSensors() {
+        SensorManager sensorManager;
+        Sensor accelSensor;
+        Sensor magneticFieldSensor;
+        sensorManager = (SensorManager) requireActivity().getSystemService(Context.SENSOR_SERVICE);
+        accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        gyroEventListener = new GyroscopeEventListener();
+        if (accelSensor != null) {
+            sensorManager.registerListener(gyroEventListener, accelSensor, SensorManager.SENSOR_DELAY_NORMAL,
+                    SensorManager.SENSOR_DELAY_UI);
+        }
+
+        if(magneticFieldSensor != null) {
+            sensorManager.registerListener(gyroEventListener, magneticFieldSensor,
+                    SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        }
+
+    }
+
+    private void getGyroscopeAndSend() {
+        if(gyroEventListener != null) {
+            double azimuth = gyroEventListener.getAzimuth();
+            connectThread.sendMessage("Azimuth : " + azimuth);
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -170,6 +202,7 @@ public class BluetoothFragment extends Fragment {
                                     try {
                                         Thread.sleep(1000);
                                         getLocationAndSend(requireContext());
+                                        getGyroscopeAndSend();
                                     } catch (InterruptedException e) {
                                         break;
                                     }
@@ -192,6 +225,7 @@ public class BluetoothFragment extends Fragment {
         });
 
 
+
     }
 
 
@@ -200,6 +234,7 @@ public class BluetoothFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         loadUIElements();
+        loadGyroscopeSensors();
 
     }
 
