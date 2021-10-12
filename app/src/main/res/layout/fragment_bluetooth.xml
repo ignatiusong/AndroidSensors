@@ -8,27 +8,6 @@
 
     <!-- TODO: Update blank fragment layout -->
 
-    <Button
-        android:id="@+id/onBluetoothbutton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="36dp"
-        android:text="on bluetooth"
-        app:layout_constraintEnd_toStartOf="@+id/guideline5"
-        app:layout_constraintHorizontal_bias="0.531"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/offBluetoothButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="off bluetooth"
-        app:layout_constraintBottom_toBottomOf="@+id/onBluetoothbutton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/guideline5"
-        app:layout_constraintTop_toTopOf="@+id/onBluetoothbutton" />
-
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline5"
         android:layout_width="wrap_content"
@@ -40,52 +19,13 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/setDiscoverableButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Set Discoverable"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/onBluetoothbutton" />
-
-    <ListView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/listView"
-        app:layout_constraintTop_toBottomOf="@id/listPairedDevicesButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <Button
-        android:id="@+id/listPairedDevicesButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="list paired devices"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="@+id/guideline5"
-        app:layout_constraintTop_toBottomOf="@+id/setDiscoverableButton" />
-
-    <Button
-        android:id="@+id/listNearbyDevicesButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="list nearby devices"
-        app:layout_constraintBottom_toBottomOf="@+id/listPairedDevicesButton"
-        app:layout_constraintEnd_toStartOf="@+id/guideline5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/listPairedDevicesButton" />
-
-    <Button
         android:id="@+id/startServerButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="start server"
-        app:layout_constraintTop_toBottomOf="@id/listView"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/receivedMsgTextView"
@@ -103,8 +43,8 @@
         android:ems="10"
         android:inputType="textPersonName"
         android:text="Message"
-        app:layout_constraintTop_toBottomOf="@+id/receivedMsgTextView"
-        />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/receivedMsgTextView" />
 
     <Button
         android:id="@+id/sendMessageButton"
@@ -115,5 +55,14 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/guideline5"
         app:layout_constraintTop_toTopOf="@+id/messageToSendEditText" />
+
+    <CheckBox
+        android:id="@+id/sendLocationCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Send Location Details"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/messageToSendEditText" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

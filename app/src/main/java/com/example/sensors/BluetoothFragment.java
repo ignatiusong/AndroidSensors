@@ -1,21 +1,26 @@
 package com.example.sensors;
 
+import android.Manifest;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -24,7 +29,12 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -77,63 +87,6 @@ public class BluetoothFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_bluetooth, container, false);
     }
 
-    private void turnBluetoothOn() {
-        if (!BA.isEnabled()) {
-            Intent turnOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(turnOn, 0);
-            Toast.makeText(getContext(), "Turned on",Toast.LENGTH_LONG).show();
-        } else {
-            Toast.makeText(getContext(), "Already on", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private void turnBluetoothOff() {
-        BA.disable();
-        Toast.makeText(getContext(), "Turned off" ,Toast.LENGTH_LONG).show();
-    }
-
-    private void setBluetoothVisible() {
-        int requestCode = 1;
-        Intent discoverableIntent =
-                new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-        discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
-        startActivityForResult(discoverableIntent, requestCode);
-        Toast.makeText(requireContext(), "Bluetooth device is now visible", Toast.LENGTH_SHORT).show();
-
-    }
-
-    private void listPairedDevices(){
-        Set<BluetoothDevice> pairedDevices = BA.getBondedDevices();
-
-        ArrayList<String> list = new ArrayList<>();
-
-        for(BluetoothDevice bt : pairedDevices) list.add(bt.getName());
-        Toast.makeText(getContext(), "Showing Paired Devices",Toast.LENGTH_SHORT).show();
-
-        final ArrayAdapter<String> adapter = new  ArrayAdapter<>(
-                getContext(),android.R.layout.simple_list_item_1, list);
-
-        lv.setAdapter(adapter);
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    private void listNearbyDevices(){
-        BA.startDiscovery();
-        if(nearbyDevices.isEmpty()) {
-            Toast.makeText(getContext(), "No Nearby Devices", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        List<BluetoothDevice> list = nearbyDevices.stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        Toast.makeText(getContext(), "Showing Nearby Devices", Toast.LENGTH_SHORT).show();
-
-        final ArrayAdapter<BluetoothDevice> adapter = new BluetoothArrayAdapter(
-                requireContext(), android.R.layout.simple_list_item_1, list);
-
-        lv.setAdapter(adapter);
-    }
 
     public void sendMessage(String message) {
         if (connectThread != null) {
@@ -141,38 +94,43 @@ public class BluetoothFragment extends Fragment {
         }
     }
 
+    private FusedLocationProviderClient fusedLocationProviderClient;
+
+    private void getLocationAndSend(Context context) {
+        if (ContextCompat.checkSelfPermission(context,
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return ;
+        }
+
+        fusedLocationProviderClient.getLastLocation().addOnSuccessListener((Activity) context, location -> {
+            Toast.makeText(context, "Sending message", Toast.LENGTH_SHORT).show();
+            connectThread.sendMessage(location.getLatitude() + " " + location.getLongitude());
+
+        });
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void loadUIElements() {
-        Button onBluetoothButton = requireView().findViewById(R.id.onBluetoothbutton);
-        Button offBluetoothButton = requireView().findViewById(R.id.offBluetoothButton);
-        Button setDiscoveryButton = requireView().findViewById(R.id.setDiscoverableButton);
-        Button listPairedDevicesButton = requireView().findViewById(R.id.listPairedDevicesButton);
-        Button listNearbyDevicesButton = requireView().findViewById(R.id.listNearbyDevicesButton);
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext());
+
         Button startServerButton = requireView().findViewById(R.id.startServerButton);
         Button sendMessageButton = requireView().findViewById(R.id.sendMessageButton);
 
         TextView receivedMsgTextView = requireView().findViewById(R.id.receivedMsgTextView);
         EditText sendMsgEditText = requireView().findViewById(R.id.messageToSendEditText);
 
-        lv = requireView().findViewById(R.id.listView);
+        CheckBox sendLocationCheckBox = requireView().findViewById(R.id.sendLocationCheckBox);
 
-        /*
-        lv.setOnItemClickListener((adapterView, view, position, l) -> {
-            BluetoothDevice device = (BluetoothDevice) lv.getItemAtPosition(position);
-            ConnectThread connectThread = new ConnectThread(BA, requireContext());
-            connectThread.start();
 
-        });*/
-
-        onBluetoothButton.setOnClickListener(view -> turnBluetoothOn());
-
-        offBluetoothButton.setOnClickListener(view -> turnBluetoothOff());
-
-        setDiscoveryButton.setOnClickListener(view -> setBluetoothVisible());
-
-        listPairedDevicesButton.setOnClickListener(view -> listPairedDevices());
-
-        listNearbyDevicesButton.setOnClickListener(view -> listNearbyDevices());
 
         Handler handler = new Handler(Looper.getMainLooper()) {
             @Override
@@ -184,6 +142,7 @@ public class BluetoothFragment extends Fragment {
 
                 }
 
+
             }
         };
 
@@ -194,6 +153,43 @@ public class BluetoothFragment extends Fragment {
         });
 
         sendMessageButton.setOnClickListener(view -> sendMessage(sendMsgEditText.getText().toString()));
+
+        sendLocationCheckBox.setOnClickListener(new View.OnClickListener() {
+            private Thread sendMessageThread;
+            @Override
+            public void onClick(View view) {
+                if(sendLocationCheckBox.isChecked()) {
+                    if(connectThread == null) {
+                        Toast.makeText(requireContext(), "You are not connected to any device", Toast.LENGTH_SHORT).show();
+                        sendLocationCheckBox.setChecked(false);
+                    } else {
+                        sendMessageThread = new Thread() {
+                            @Override
+                            public void run() {
+                                while(true) {
+                                    try {
+                                        Thread.sleep(1000);
+                                        getLocationAndSend(requireContext());
+                                    } catch (InterruptedException e) {
+                                        break;
+                                    }
+                                }
+                            }
+
+
+                        };
+
+                        sendMessageThread.start();
+                    }
+                } else {
+                    if(sendMessageThread != null) {
+                        sendMessageThread.interrupt();
+                        sendMessageThread = null;
+                        Toast.makeText(requireContext(), "Message sending stopped", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        });
 
 
     }
