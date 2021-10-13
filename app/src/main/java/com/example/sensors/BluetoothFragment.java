@@ -40,6 +40,8 @@ import androidx.fragment.app.Fragment;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -116,7 +118,11 @@ public class BluetoothFragment extends Fragment {
         }
 
         fusedLocationProviderClient.getLastLocation().addOnSuccessListener((Activity) context, location -> {
-            connectThread.sendMessage(location.getLatitude() + " " + location.getLongitude());
+            if(location != null) {
+                connectThread.sendMessage(location.getLatitude() + " " + location.getLongitude());
+            } else {
+                Toast.makeText(requireContext(), "No GPS Location found", Toast.LENGTH_SHORT).show();
+            }
 
         });
     }
@@ -155,8 +161,10 @@ public class BluetoothFragment extends Fragment {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext());
 
         Button startServerButton = requireView().findViewById(R.id.startServerButton);
+        Button stopServerButton = requireView().findViewById(R.id.stopServerButton);
         Button sendMessageButton = requireView().findViewById(R.id.sendMessageButton);
 
+        TextView statusTextView = requireView().findViewById(R.id.statusTextView);
         TextView receivedMsgTextView = requireView().findViewById(R.id.receivedMsgTextView);
         EditText sendMsgEditText = requireView().findViewById(R.id.messageToSendEditText);
 
@@ -174,14 +182,32 @@ public class BluetoothFragment extends Fragment {
 
                 }
 
+                if(msg.what == MessageConstants.MESSAGE_SUCCESSFULLY_CONNECTED) {
+                    String deviceDetails = (String) msg.obj;
+                    statusTextView.setText("Successfully connected to " + deviceDetails);
+                }
+
 
             }
         };
 
         startServerButton.setOnClickListener(view -> {
-            ConnectThread connectThread = new ConnectThread(BA, handler);
-            BluetoothFragment.this.connectThread = connectThread;
-            connectThread.start();
+            if(!BA.isEnabled()) {
+                BA.enable();
+            }
+
+            if(BA.isEnabled()) {
+                statusTextView.setText("Server started");
+                ConnectThread connectThread = new ConnectThread(BA, handler);
+                BluetoothFragment.this.connectThread = connectThread;
+                connectThread.start();
+            }
+        });
+
+        stopServerButton.setOnClickListener(view -> {
+            BluetoothFragment.this.connectThread.cancel();
+            BluetoothFragment.this.connectThread = null;
+            statusTextView.setText("Disconnected");
         });
 
         sendMessageButton.setOnClickListener(view -> sendMessage(sendMsgEditText.getText().toString()));

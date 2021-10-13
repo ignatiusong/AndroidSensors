@@ -51,11 +51,14 @@ public class ConnectThread extends Thread {
                 // the connection in a separate thread.
                 ConnectedThread connectedThread = new ConnectedThread(socket);
                 ConnectThread.this.connectedThread = connectedThread;
+                Message connectionSuccessMessage = Message.obtain(handler, MessageConstants.MESSAGE_SUCCESSFULLY_CONNECTED,
+                        socket.getRemoteDevice().toString());
+                connectionSuccessMessage.sendToTarget();
                 connectedThread.start();
                 try {
                     mmServerSocket.close();
                 } catch (IOException e) {
-                    Log.e("Shit's going down", "Help", e);
+                    Log.e("", "Help", e);
                 }
                 break;
             }
@@ -75,6 +78,12 @@ public class ConnectThread extends Thread {
             mmServerSocket.close();
         } catch (IOException e) {
             Log.e("Something", "Could not close the connect socket", e);
+        }
+
+        if(connectedThread != null) {
+            connectedThread.cancel();
+            connectedThread = null;
+
         }
     }
 
