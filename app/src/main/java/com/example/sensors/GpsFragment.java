@@ -4,7 +4,9 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +20,9 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
 public class GpsFragment extends Fragment {
@@ -68,29 +73,39 @@ public class GpsFragment extends Fragment {
     }
 
 
-
     // Things to actually get location
     private FusedLocationProviderClient fusedLocationProviderClient;
+    private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
+
+    private void requestLocation() {
+        if (ContextCompat.checkSelfPermission(requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            return ;
+        }
+
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest,
+                locationCallback,
+                Looper.getMainLooper());
+
+    }
 
     private void getLocation(TextView latitude, TextView longitude, Context context) {
         if (ContextCompat.checkSelfPermission(context,
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return ;
         }
 
 
         fusedLocationProviderClient.getLastLocation().addOnSuccessListener((Activity) context, location -> {
-            latitude.setText("" + location.getLatitude());
-            longitude.setText("" + location.getLongitude());
+            if(location != null) {
+                latitude.setText("" + location.getLatitude());
+                longitude.setText("" + location.getLongitude());
+            }
 
         });
 
@@ -102,7 +117,28 @@ public class GpsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         loadUIElements();
 
+
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient( requireContext());
+
+        locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(2*5000);
+
+        locationCallback=new LocationCallback(){
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    String Lat = String.valueOf(location.getLatitude());
+                    String Lon = String.valueOf(location.getLongitude());
+
+                }
+            }
+        };
+        // Necessary call to ensure location is not null
+        requestLocation();
 
         updateStartGPSbutton.setOnClickListener(view1 -> getLocation(startLatitudeTextView, startLongitudeTextView, getContext()));
 
